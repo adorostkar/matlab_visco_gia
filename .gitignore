@@ -1,0 +1,11 @@
+*.swp
+*.zip
+.DS_Store
+CMakeLists.txt.user*
+*build/
+*build*/
+*out*/
+CMakeLists.txt.user
+*.pyc
+*.cfg
+**/.idea*
