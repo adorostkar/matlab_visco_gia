@@ -1,5 +1,6 @@
 % Initial quadrilateral mesh
-% b.c. such that the solution is displ_x=0; displ_y - linear
+% The domain is rectangular, parallel to the coordinate axes, i.e.,
+% a rectangular box xmin <= x xmax, ymin <= y <= ymax
 %
 % Face_flag(iface)=disco_region
 %---->  Regular meshsize in each direction
@@ -70,7 +71,29 @@ end
 %Bvisual_mesh(Node,Edge,Face,1,1,1,3,16)  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Mark Dirichlet boundary nodes and edges
+% determine the box bounds
+xmin = min(Node(1,:));
+xmax = max(Node(1,:));
+ymin = min(Node(2,:));
+ymax = max(Node(2,:));
+
+% Determine the domain boundaries
+%    y
+%    ^
+%    | 
+%    |        G4
+%    --------------------
+%    |                  |
+% G1 |                  | G2
+%    |                  |
+%    -------------------- - - - -> x
+%            G3
+G1=find(Node(1,:)==xmin);
+G2=find(Node(1,:)==xmax);
+G3=find(Node(2,:)==ymin);
+G4=find(Node(2,:)==ymax);
+
+% Initialize arrays for Dirichlet boundary nodes and edges
 nnode = size(Node,2);
 Node_flagx(1:nnode,1)  = 0;
 Node_flagy(1:nnode,1)  = 0;
@@ -80,12 +103,7 @@ Edge_flagy(1:nedge,1) = 0;
    
 switch test_problem
     case {0,8,9}
- % prepare Node_flagx and Node_flagy (b.c. for nodes)
-           G1=find(Node(1,:)==0);
-           G2=find(Node(1,:)==1);
-           G3=find(Node(2,:)==0);
-           G4=find(Node(2,:)==1);
-        if strcmp(wh,'g0'), % prefabricated
+        if strcmp(wh,'g0'), % prefabricated solution
            Gx=unique(cat(2,G1,G2,G3,G4));
            Gy=Gx;
          elseif strcmp(wh,'g8'), % to be checked
@@ -93,7 +111,7 @@ switch test_problem
 %                   Gx = unique(cat(2,G1,G3)); % Dirichlet on two sides, 
 %                    homog. Dirichlet on G2, not OK
 %       Gy = Gx;
-        else
+        else  % uniform load on G4
             Gy = G3;
             Gx = unique(cat(2,G1,G2,G3)); % Dirichlet on three sides
         end
@@ -109,7 +127,7 @@ switch test_problem
               Edge_flagy(k,1)  = Flags('Dirichlet');
        end 
    end
-  % --------------- end for b.c. for wh='g0','g8','g9' --------------------------  
+ % --------------- end for b.c. for wh='g0','g8','g9'--------------------------  
     case 10  % test_problem==10,
  % Fix GIA nodes
    for k=1:nnode,
@@ -133,7 +151,7 @@ switch test_problem
               Edge_flagy(k,1)  = Flags('Dirichlet');
        end
     end
-end
+end  %end switch on test_problem
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 nface = size(Face,2);

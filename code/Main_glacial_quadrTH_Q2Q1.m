@@ -186,54 +186,41 @@ disp(['Total number of quadrilaterals for the pressure: ' int2str(nfaceP)])
 % figure(1),clf,Bvisual_mesh(Node,Edge,Face,1,1,1,1,16)
 disp(['Total number of coarse quadrilaterals: ' int2str(nfaceP)])
 
-% ----- detect boundary edges under the ice based on the pressure mesh
-if (strcmp(wh,'gs'))|(strcmp(wh,'g9'))  % ice for y=0, 0<=x<=l_ice (current length of the ice)
-    % ---------------- Create mesh-related matrices (again) -----
-    nnode = nnodeP+nedgeP+nfaceP;
-    nedge = 2*nedgeP+4*nfaceP;
-    nface = 4*nfaceP;      % number of subdomains (for the displacements)
-    Edge_Node = spalloc(nedgeP,nnodeP,2*nedgeP);
-    Face_Edge = spalloc(nfaceP,nedgeP,4*nedgeP);
-    for iedge=1:nedgeP,
+%% ----- detect boundary edges under the load (ice) based on the pressure mesh
+xmax = max(Node(1,:));
+xmin = min(Node(1,:));
+ymax = max(Node(2,:));
+ymin = min(Node(2,:));
+
+% ---------------- Create mesh-related matrices (again) -----
+nnode = nnodeP+nedgeP+nfaceP;
+nedge = 2*nedgeP+4*nfaceP;
+nface = 4*nfaceP;      % number of subdomains (for the displacements)
+Edge_Node = spalloc(nedgeP,nnodeP,2*nedgeP);
+Face_Edge = spalloc(nfaceP,nedgeP,4*nedgeP);
+for iedge=1:nedgeP,
         %     vf = Edge(:,iedge)';
         %     Edge_Node(iedge,vf)=1;
         Edge_Node(iedge,Edge(1,iedge))=1;
         Edge_Node(iedge,Edge(2,iedge))=1;
-    end
-    for iface=1:nfaceP,
+end
+for iface=1:nfaceP,
         %     vf=Face(:,iface)';
         %     Face_Edge(iface,vf)=1;
         Face_Edge(iface,Face(1,iface))=1;
         Face_Edge(iface,Face(2,iface))=1;
         Face_Edge(iface,Face(3,iface))=1;
         Face_Edge(iface,Face(4,iface))=1;
-    end
-    xmax = max(Node(1,:));
-    xmin = min(Node(1,:));
-    ymax = max(Node(2,:));
-    ymin = min(Node(2,:));
-    if test_problem==8,
-        % the surface load is on the bottom boundary
-        Surface_Nodes = find(Node(2,:)==min); % all surface nodes
-        Load_Nodes = Surface_Nodes;
-        [noi,noj]=find(Edge_Node(:,Load_Nodes));
-        noi=unique(noi);
-        clear Load_edges, lb=0;
-        for i=1:length(noi),
-            if (Node(2,Edge(:,noi(i)))==[-1 -1])&(prod(Node(1,Edge(:,noi(i))))<=l_ice^2),
-                lb = lb + 1; Load_Edges_list(lb)=noi(i);
-            end
-        end
-        Load_Edges=Edge(:,Load_Edges_list);
-        %   Find corresponding faces
-        Edge_Face = Face_Edge';
-        [wv,Load_Faces] = find(Edge_Face(Load_Edges_list,:));
-        Load_Faces(wv) = Load_Faces;
-        Top_Nodes=[];  Top_Edges=[];  Top_Edges_list=[];  Top_Faces=[];
-        Right_Nodes=[];Right_Edges=[];Right_Edges_list=[];Right_Faces=[];
-        
-    else
-        %% the surface load is on the top boundary
+end
+
+Load_Nodes=[];  Load_Edges=[];  Load_Edges_list=[];  Load_Faces=[];
+Top_Nodes=[];  Top_Edges=[];  Top_Edges_list=[];  Top_Faces=[];
+Right_Nodes=[];Right_Edges=[];Right_Edges_list=[];Right_Faces=[];
+
+switch test_problem
+    case{0,8}  % no surface load imposed on the boundary of the domain
+        % nothing to do
+    case{9,10} % load on the top boundary (uniform or partial)
         Surface_Nodes = find(Node(2,:)==ymax); % all surface nodes
         % ~~~~ Find the part where the load is applied (start)
         [~,noj]   = find(Node(1,Surface_Nodes(:))<=l_ice);
@@ -247,13 +234,14 @@ if (strcmp(wh,'gs'))|(strcmp(wh,'g9'))  % ice for y=0, 0<=x<=l_ice (current leng
             end
         end
         Load_Edges=Edge(:,Load_Edges_list);
-        %   Find faces under the ice
+        %----   Find faces under the ice
         Edge_Face = Face_Edge';
         [wv,Load_Faces] = find(Edge_Face(Load_Edges_list,:));
         Load_Faces(wv) = Load_Faces;
         % ~~~~ Find the part where the load is applied (end)
-        %% ~~~~ Find the top boundary  no load (start)
+        % ~~~~ Find the top boundary  no load (start)
         [~,noj]   = find(Node(1,Surface_Nodes(:))>l_ice);
+        if ~isempty(noj)
         Top_Nodes = Surface_Nodes(noj);
         [noi,noj]=find(Edge_Node(:,Top_Nodes));
         noi=unique(noi);
@@ -264,34 +252,13 @@ if (strcmp(wh,'gs'))|(strcmp(wh,'g9'))  % ice for y=0, 0<=x<=l_ice (current leng
             end
         end
         Top_Edges=Edge(:,Top_Edges_list);
-        %   Find faces under the ice-free surface
+            %----   Find faces under the ice-free surface
         [wv,Top_Faces] = find(Edge_Face(Top_Edges_list,:));
         Top_Faces(wv) = Top_Faces;
-        
-        % ~~~~ Find the top boundary no load (end)
-        %% ~~~~ Find the right boundary (start)
-        Right_Nodes = find(Node(1,:)==xmax); % all right boundary nodes
-        [noi,noj]=find(Edge_Node(:,Right_Nodes));
-        noi=unique(noi);
-        clear Right_edges, lb=0;
-        for i=1:length(noi),
-            if Node(1,Edge(:,noi(i)))==[xmax xmax],
-                lb = lb + 1; Right_Edges_list(lb)=noi(i);
-            end
-        end
-        Right_Edges=Edge(:,Right_Edges_list);
-        %   Find faces next to right boundary
-        [wv,Right_Faces] = find(Edge_Face(Right_Edges_list,:));
-        Right_Faces(wv) = Right_Faces;
-        % ~~~~ Find the right boundary (end)
     end
-else  % no surface load imposed on the boundary of the domain
-    Load_Nodes=[];  Load_Edges=[];  Load_Edges_list=[];  Load_Faces=[];
-    Top_Nodes=[];  Top_Edges=[];  Top_Edges_list=[];  Top_Faces=[];
-    Right_Nodes=[];Right_Edges=[];Right_Edges_list=[];Right_Faces=[];
-end
+end % switch test_problem
 
-% Refine once to obtain the mesh for the displacements and
+%% Refine once to obtain the mesh for the displacements and
 % Face_eorder4 and Face_eorder9 arrays
 
 [Node,Edge,Face,...
@@ -333,7 +300,7 @@ if test_problem==8,
     % the surface load is on the bottom boundary
     Surface_Nodes = find(Node(2,:)==-1); % all surface nodes
 else
-    Surface_Nodes = find(Node(2,:)==0); % all surface nodes
+    Surface_Nodes = find(Node(2,:)==ymax); % all surface nodes
 end
 % ------------ detect boundary edges
 %bndry_edge = zeros(nedge,1);

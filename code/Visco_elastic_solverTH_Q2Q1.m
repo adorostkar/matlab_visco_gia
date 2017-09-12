@@ -100,9 +100,10 @@ Maxwell_time_inv = Discoef(3,1);%
 
 if test_problem < 10,
 %    disp('NO PRE-STRESS ADVECTION.')  % no advection
-   vec_coeff = [0,0,0,0]
+%    vec_coeff = [0,0,0,0]
    disp('EXACT SOLUTION WITH ADVECTION.')  %
 %    vec_coeff = [1,2,3,4]
+ vec_coeff = [0,-rho_earth*grav,0,0]
 else
    disp('WITH PRE-STRESS ADVECTION.')  % with advection
 %  vec_coeff = [0,0,0,0]
@@ -295,12 +296,12 @@ end
      % Update the memory term  and the visco boundary term
     if k == 2
         W  = 0.5*Maxwell_time_inv*delta_t_cur*exp(-Maxwell_time_inv*delta_t_cur)*Q_cur0*uvp_prev;
-        WV = 0.0;%0.5*Maxwell_time_inv*delta_t_cur*(rhs_s+exp(-Maxwell_time_inv*delta_t_cur)* rhs_s_prev);
+        WV = 0.5*Maxwell_time_inv*delta_t_cur*(rhs_s+exp(-Maxwell_time_inv*delta_t_cur)* rhs_s_prev);
     else
         W  =  exp(-Maxwell_time_inv*delta_t_cur)*W  +  ...
                    0.5*Maxwell_time_inv*delta_t_cur*exp(-Maxwell_time_inv*delta_t_cur)*Q_cur0*uvp_prev ;
-        WV =  0.0;%exp(-Maxwell_time_inv*delta_t_cur)*WV  +  ...
-%                    0*0.5*Maxwell_time_inv*delta_t_cur*(rhs_s+exp(-Maxwell_time_inv*delta_t_cur)*rhs_s_prev);
+        WV =  exp(-Maxwell_time_inv*delta_t_cur)*WV  +  ...
+                   0*0.5*Maxwell_time_inv*delta_t_cur*(rhs_s+exp(-Maxwell_time_inv*delta_t_cur)*rhs_s_prev);
    end
     % Save the previous solution
     uvp_prev    = uvp_cur;
@@ -329,9 +330,9 @@ end
 
    switch test_problem
        
-       case {0,8,9}
+       case {0,8}
              uvp_cur = T_cur\rhs_cur;
-       case 10
+       case {9,10}
            if flag_incr == 1 % incremental form
               uvp_cur_incr = T_cur\rhs_cur;
              uvp_cur = uvp_elast + uvp_cur_incr;
@@ -348,7 +349,7 @@ end
     UVPp(1:nnodeP) = uvp_cur(2*nnode+1:2*nnode+nnodeP,1);
 
 switch test_problem
-    case {0,8,9}
+    case {0,8}
     [Uex,Vex,Pex] = UVPtime_sol(Node(1,:)',Node(2,:)',time_cur,nnodeP);
     figure(4),clf,plot3(Node(1,:)',Node(2,:)',UVPu-Uex,'p')
     figure(5),clf,plot3(Node(1,:)',Node(2,:)',UVPv-Vex,'d')
@@ -366,7 +367,7 @@ switch test_problem
 %     figure(4),plot3(Node(1,:),Node(2,:),Uex,'pr')
 %     figure(5),plot3(Node(1,:),Node(2,:),Vex,'dr')
 %     figure(6),plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),Pex,'or')
-    case 10
+    case {9,10}
       cy = floor(time_cur*T_char/secs_per_year);
       nexy = nexy + 1;
       [vmu,pmu]=max(abs(UVPu(:)));
