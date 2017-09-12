@@ -8,7 +8,7 @@
 % Presummed ordering of the nodepoints in the reference f.e.:
 %  (-1,1) (1,1)
 %     2    3
-%      ----           
+%      ----
 %     |    |       DER = [ dfi_i/dksi; dfi_i/deta]
 %     |    |       DER(2,4)
 %    1|____|4
@@ -17,24 +17,24 @@
 
 
 function [DER]=shape_der_quad(ksi,eta) %
-
-%       ksi  = Gauss_point(1,k);
-%       eta  = Gauss_point(2,k);
-      ksim = 1-ksi;
-      ksip = 1+ksi;
-      etam = 1-eta;
-      etap = 1+eta;
-
-      DER(1,1) = -0.25*etam;
-      DER(2,1) = -0.25*ksim;
-
-      DER(1,2) = -0.25*etap;
-      DER(2,2) =  0.25*ksim;
-
-      DER(1,3) =  0.25*etap;
-      DER(2,3) =  0.25*ksip;
-
-      DER(1,4) =  0.25*etam;
-      DER(2,4) = -0.25*ksip;
-
-return
+    
+    %       ksi  = Gauss_point(1,k);
+    %       eta  = Gauss_point(2,k);
+    ksim = 1-ksi;
+    ksip = 1+ksi;
+    etam = 1-eta;
+    etap = 1+eta;
+    
+    DER(1,1) = -0.25*etam;
+    DER(2,1) = -0.25*ksim;
+    
+    DER(1,2) = -0.25*etap;
+    DER(2,2) =  0.25*ksim;
+    
+    DER(1,3) =  0.25*etap;
+    DER(2,3) =  0.25*ksip;
+    
+    DER(1,4) =  0.25*etam;
+    DER(2,4) = -0.25*ksip;
+    
+    return

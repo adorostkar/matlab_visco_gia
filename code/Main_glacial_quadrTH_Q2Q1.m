@@ -110,7 +110,7 @@ switch test_problem
                 H0=-max(abs(H));
                 Nx = 11;%L/(2*l_ice)+1;      % ensure mesh aligned with the ice after one refinement
                 Ny = 5;%abs(H0)/(2*l_ice)+1;
-                
+
                 [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_TH_wu92(L,H0,Nx,Ny);
                 %  [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_Wu_coarse(L,H,l_ice);
             case 3  % Wu 1998
@@ -137,7 +137,7 @@ end
     Node_flagx,Node_flagy,...
     Edge_flagx,Edge_flagy,...
     Face_flag,Face_thick] = Rectan_glace_vect(L,H,xc,yc,Nx,Ny,...
-    no_domains,Disco,wh);
+                                              no_domains,Disco,wh);
 
 
 % Visualise the mesh
@@ -169,9 +169,9 @@ for lvl=1:nrefin,
         Node_flagx,Node_flagy,...
         Edge_flagx,Edge_flagy,...
         Face_flag,Face_thick] = my_Refine_quadr(Node,Edge,Face,...
-        Node_flagx,Node_flagy,...
-        Edge_flagx,Edge_flagy,...
-        Face_flag,Face_thick);
+                                                Node_flagx,Node_flagy,...
+                                                Edge_flagx,Edge_flagy,...
+                                                Face_flag,Face_thick);
     nface_lvl(lvl+1) = size(Face,2);
     nnode_lvl(lvl+1) = size(Node,2);
     %     figure(1),Bvisual_mesh(Node,Edge,Face,1,1,1,0,16)
@@ -199,18 +199,18 @@ nface = 4*nfaceP;      % number of subdomains (for the displacements)
 Edge_Node = spalloc(nedgeP,nnodeP,2*nedgeP);
 Face_Edge = spalloc(nfaceP,nedgeP,4*nedgeP);
 for iedge=1:nedgeP,
-        %     vf = Edge(:,iedge)';
-        %     Edge_Node(iedge,vf)=1;
-        Edge_Node(iedge,Edge(1,iedge))=1;
-        Edge_Node(iedge,Edge(2,iedge))=1;
+    %     vf = Edge(:,iedge)';
+    %     Edge_Node(iedge,vf)=1;
+    Edge_Node(iedge,Edge(1,iedge))=1;
+    Edge_Node(iedge,Edge(2,iedge))=1;
 end
 for iface=1:nfaceP,
-        %     vf=Face(:,iface)';
-        %     Face_Edge(iface,vf)=1;
-        Face_Edge(iface,Face(1,iface))=1;
-        Face_Edge(iface,Face(2,iface))=1;
-        Face_Edge(iface,Face(3,iface))=1;
-        Face_Edge(iface,Face(4,iface))=1;
+    %     vf=Face(:,iface)';
+    %     Face_Edge(iface,vf)=1;
+    Face_Edge(iface,Face(1,iface))=1;
+    Face_Edge(iface,Face(2,iface))=1;
+    Face_Edge(iface,Face(3,iface))=1;
+    Face_Edge(iface,Face(4,iface))=1;
 end
 
 Load_Nodes=[];  Load_Edges=[];  Load_Edges_list=[];  Load_Faces=[];
@@ -242,20 +242,20 @@ switch test_problem
         % ~~~~ Find the top boundary  no load (start)
         [~,noj]   = find(Node(1,Surface_Nodes(:))>l_ice);
         if ~isempty(noj)
-        Top_Nodes = Surface_Nodes(noj);
-        [noi,noj]=find(Edge_Node(:,Top_Nodes));
-        noi=unique(noi);
-        clear Top_edges, lb=0;
-        for i=1:length(noi),
-            if (Node(2,Edge(:,noi(i)))==[ymax ymax])&(prod(Node(1,Edge(:,noi(i))))>l_ice^2),
-                lb = lb + 1; Top_Edges_list(lb)=noi(i);
+            Top_Nodes = Surface_Nodes(noj);
+            [noi,noj]=find(Edge_Node(:,Top_Nodes));
+            noi=unique(noi);
+            clear Top_edges, lb=0;
+            for i=1:length(noi),
+                if (Node(2,Edge(:,noi(i)))==[ymax ymax])&(prod(Node(1,Edge(:,noi(i))))>l_ice^2),
+                    lb = lb + 1; Top_Edges_list(lb)=noi(i);
+                end
             end
-        end
-        Top_Edges=Edge(:,Top_Edges_list);
+            Top_Edges=Edge(:,Top_Edges_list);
             %----   Find faces under the ice-free surface
-        [wv,Top_Faces] = find(Edge_Face(Top_Edges_list,:));
-        Top_Faces(wv) = Top_Faces;
-    end
+            [wv,Top_Faces] = find(Edge_Face(Top_Edges_list,:));
+            Top_Faces(wv) = Top_Faces;
+        end
 end % switch test_problem
 
 %% Refine once to obtain the mesh for the displacements and
@@ -267,9 +267,10 @@ end % switch test_problem
     Face_flag,Face_thick,...
     Face_Node,Face_Parent,...
     Face_eorder9,Face_eorder4,...
-    nface_lvl,nnode_lvl] = my_Refine_quadr_hier(Node,Edge,Face,...
-    Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,...
-    Face_flag,Face_thick,nface_lvl,nnode_lvl,levels);
+    nface_lvl,nnode_lvl] = ...
+         my_Refine_quadr_hier(Node,Edge,Face,...
+                              Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,...
+                              Face_flag,Face_thick,nface_lvl,nnode_lvl,levels);
 %  figure(1),clf,Bvisual_mesh(Node,Edge,Face,1,1,1,3,16)
 hx = hx/2;
 hy = hy/2;

@@ -5,15 +5,15 @@
 % !!!!! separate-displacement ordering !!!!!
 %
 function [rhs]=Dirichlet_Esdo_rhs(rhs,Node_flagx,Node_flagy,nnode,nnodeP)
-
-rhs_d = rhs(1:2*nnode,1);
-rhs_p = rhs(2*nnode+1:2*nnode+nnodeP);
-
-flx = find(Node_flagx(:,1)==1);
-fly = find(Node_flagy(:,1)==1);
-
-rhs_d(flx,1)       = 0;
-rhs_d(fly+nnode,1) = 0;
-rhs = [rhs_d;rhs_p];
-
-return
+    
+    rhs_d = rhs(1:2*nnode,1);
+    rhs_p = rhs(2*nnode+1:2*nnode+nnodeP);
+    
+    flx = find(Node_flagx(:,1)==1);
+    fly = find(Node_flagy(:,1)==1);
+    
+    rhs_d(flx,1)       = 0;
+    rhs_d(fly+nnode,1) = 0;
+    rhs = [rhs_d;rhs_p];
+    
+    return
