@@ -32,17 +32,18 @@ global advec_const
 global test_problem
 global L_char M_char N_char U_char R_char G_char T_char T0
 
+pars = Parameters();
 % Debug variable
 % 1 - print debug texts
 % 0 - no debug
 global debug;
-debug = 1;
+debug = pars.debug;
 
 % % Variables
 % 0 - No additional output(figure and text)
 % 1 - Only figures
 % 2 - everything
-verbose = 0;
+verbose = pars.verbose;
 
 np    = 4;  % number of points in the finite element
 dim   = 2;  % number of degree of freedom (elasticity part)
@@ -58,8 +59,8 @@ ndof = dim*dofD;
 % lll = 2;
 % kkk = 1;
 
-mkdir('./out')
-diary('./out/diary')
+mkdir(pars.outdir)
+diary([pars.outdir 'diary.txt'])
 % % Preparing parameters and mesh
 tic
 
@@ -70,9 +71,9 @@ test_problem = 10; % visco-elasticity
 switch test_problem
     case {0,8}
         wh = 'g0'; % manufactured solution
-        beta = 0.1;
-        no_domains = 2;
-        Emagn = 1;
+        beta = pars.beta;
+        no_domains = pars.no_domains;
+        Emagn = pars.Emagn;
         [L,H,l_ice,h_ice,rho_ice,rho_earth,...
             Disco,Discoef,grav,load_surf,...
             T_LGM, T_EOG, T, delta_t_char] = Elasto_parameters(no_domains,wh,Emagn);
@@ -91,8 +92,8 @@ switch test_problem
         [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_TH(L,H0,Nx,Ny);
     case 10
         wh = 'gs';  Maxwell_time_inv =0;
-        no_domains = 2;
-        Emagn = 1; % can be 1, 10, 100 (jump in E between the two subdomains)
+        no_domains = pars.no_domains;
+        Emagn = pars.Emagn; % can be 1, 10, 100 (jump in E between the two subdomains)
         test_case = 4;
         switch test_case
             case 1  % Bjorn

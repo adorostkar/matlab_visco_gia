@@ -191,7 +191,7 @@ disp(['Max displacenet in y: ' num2str(max(abs(UVPv(:,1)*U_char*L_char)))])
 
 % End elastic step
 time = 0;
-flag_incr = 1; % ==1, incremental form
+flag_incr = pars.flag_incr; % ==1, incremental form
 
 if wh == 'g0', %(test_problem == 0)|(test_problem==9),
     nju = Discoef(1,Face_flag(1,1));
@@ -229,7 +229,7 @@ T_cur0 = S_cur0 - 0.5*Maxwell_time_inv*delta_t_cur*Q_cur0;
 % uvp_sol_prev = [Uex;Vex;Pex];
 cntr_cy = 1;
 nexy = 0;
-t_pr = [1,2,3,4,5,6,7,8,9,10,50,100,200,300,400,500,600,1000,[1500:500:10000]];
+t_pr = pars.t_pr;
 k = 1;
 % Save the previous solution
 uvp_prev    = uvp_cur;
@@ -394,7 +394,7 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
                 %           p = plot(Node(1,id(1,:))*L_char, L_char*Node(2,id(1,:)) + xdis(1,:), '-.');
                 %           drawnow
 
-                save(['./out/data-y' num2str(cy)], 'cy', 'Pos', 'L_char', 'U_char', 'M_char', 'Stress_cur', 'Node', 'UVPu', 'UVPv', 'UVPp', 'nnode_lvl', 'id', 'X', 'Y')
+                save([pars.outdir 'data-y' num2str(cy)], 'cy', 'Pos', 'L_char', 'U_char', 'M_char', 'Stress_cur', 'Node', 'UVPu', 'UVPv', 'UVPp', 'nnode_lvl', 'id', 'X', 'Y')
 
                 cntr_cy = cntr_cy+1;
             end
