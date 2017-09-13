@@ -21,3 +21,8 @@ function pars = Parameters()
   pars.Emagn = 1;
 
   pars.flag_incr = 1; % ==1, incremental form
+
+  % pars.test_problem = 0; % pure elasticity in unit square, benchmark
+  % pars.test_problem = 9; % visco-elasticity in unit square, benchmark
+  % pars.test_problem = 8; % visco-elasticity in unit square, benchmark
+  pars.test_problem = 10; % visco-elasticity

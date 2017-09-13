@@ -64,10 +64,7 @@ diary([pars.outdir 'diary.txt'])
 % % Preparing parameters and mesh
 tic
 
-% test_problem = 0; % pure elasticity in unit square, benchmark
-% test_problem = 9; % visco-elasticity in unit square, benchmark
-% test_problem = 8; % visco-elasticity in unit square, benchmark
-test_problem = 10; % visco-elasticity
+test_problem = pars.test_problem; % visco-elasticity
 switch test_problem
     case {0,8}
         wh = 'g0'; % manufactured solution
@@ -153,7 +150,7 @@ hx = hx/2^nrefin;
 hy = hy/2^nrefin;
 h  = min(abs(hx),min(abs(hy)));
 sigma = h^2;
-%    disp('sigma  = h^2')
+% disp('sigma  = h^2')
 
 solver_type = 1;
 levels    = nrefin + 1;
@@ -175,7 +172,7 @@ for lvl=1:nrefin,
                                                 Face_flag,Face_thick);
     nface_lvl(lvl+1) = size(Face,2);
     nnode_lvl(lvl+1) = size(Node,2);
-    %     figure(1),Bvisual_mesh(Node,Edge,Face,1,1,1,0,16)
+    % figure(1),Bvisual_mesh(Node,Edge,Face,1,1,1,0,16)
 end
 
 nnodeP = size(Node,2);
@@ -200,14 +197,14 @@ nface = 4*nfaceP;      % number of subdomains (for the displacements)
 Edge_Node = spalloc(nedgeP,nnodeP,2*nedgeP);
 Face_Edge = spalloc(nfaceP,nedgeP,4*nedgeP);
 for iedge=1:nedgeP,
-    %     vf = Edge(:,iedge)';
-    %     Edge_Node(iedge,vf)=1;
+    % vf = Edge(:,iedge)';
+    % Edge_Node(iedge,vf)=1;
     Edge_Node(iedge,Edge(1,iedge))=1;
     Edge_Node(iedge,Edge(2,iedge))=1;
 end
 for iface=1:nfaceP,
-    %     vf=Face(:,iface)';
-    %     Face_Edge(iface,vf)=1;
+    % vf=Face(:,iface)';
+    % Face_Edge(iface,vf)=1;
     Face_Edge(iface,Face(1,iface))=1;
     Face_Edge(iface,Face(2,iface))=1;
     Face_Edge(iface,Face(3,iface))=1;
@@ -284,14 +281,14 @@ nface = size(Face,2);      % number of subdomains (for the displacements)
 Edge_Node = spalloc(nedge,nnode,2*nedge);
 Face_Edge = spalloc(nface,nedge,4*nedge);
 for iedge=1:nedge,
-    %     vf = Edge(:,iedge)';
-    %     Edge_Node(iedge,vf)=1;
+    % vf = Edge(:,iedge)';
+    % Edge_Node(iedge,vf)=1;
     Edge_Node(iedge,Edge(1,iedge))=1;
     Edge_Node(iedge,Edge(2,iedge))=1;
 end
 for iface=1:nface,
-    %     vf=Face(:,iface)';
-    %     Face_Edge(iface,vf)=1;
+    % vf=Face(:,iface)';
+    % Face_Edge(iface,vf)=1;
     Face_Edge(iedge,Face(1,iface))=1;
     Face_Edge(iedge,Face(2,iface))=1;
     Face_Edge(iedge,Face(3,iface))=1;
@@ -305,7 +302,7 @@ else
     Surface_Nodes = find(Node(2,:)==ymax); % all surface nodes
 end
 % ------------ detect boundary edges
-%bndry_edge = zeros(nedge,1);
+% bndry_edge = zeros(nedge,1);
 bndry_edge = sum(Face_Edge,1);    % The boundary edges are with sum '1'
 [noi,Bndry_Edges]=find(bndry_edge==1); % Bndry_Edges is a list of boundary edges ONLY!
 

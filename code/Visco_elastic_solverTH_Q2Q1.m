@@ -99,15 +99,15 @@ S_char  = 1;
 Maxwell_time_inv = Discoef(3,1);%
 
 if test_problem < 10,
-    %    disp('NO PRE-STRESS ADVECTION.')  % no advection
-    %    vec_coeff = [0,0,0,0]
+    % disp('NO PRE-STRESS ADVECTION.')  % no advection
+    % vec_coeff = [0,0,0,0]
     disp('EXACT SOLUTION WITH ADVECTION.')  %
-    %    vec_coeff = [1,2,3,4]
+    % vec_coeff = [1,2,3,4]
     vec_coeff = [0,-rho_earth*grav,0,0]
 else
     disp('WITH PRE-STRESS ADVECTION.')  % with advection
-    %  vec_coeff = [0,0,0,0]
-    %   vec_coeff = [0,-rho_earth*grav,0, -rho_earth*grav]
+    % vec_coeff = [0,0,0,0]
+    % vec_coeff = [0,-rho_earth*grav,0, -rho_earth*grav]
     vec_coeff = [0,-rho_earth*grav,0,0]
 end
 % vec_coeff = vec_coeff.*advec_const  % scaling of the advection terms
@@ -201,15 +201,15 @@ if wh == 'g0', %(test_problem == 0)|(test_problem==9),
     time_cur=0;
     [Uex,Vex,Pex] = UVPtime_sol(Node(1,:)',Node(2,:)',time_cur,nnodeP);
     norm(UVPu-Uex),norm(UVPv-Vex), norm(UVPp-Pex)
-    %     figure(4),clf,plot3(Node(1,:),Node(2,:),UVPu(:,1)-Uex,'p')
-    %     figure(5),clf,plot3(Node(1,:),Node(2,:),UVPv(:,1)-Vex,'d')
-    %     figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp(:,1)-Pex,'o')
-    %     figure(8),clf,plot(T_cur*uvp_sol),hold,plot(rhs_cur,'r')
-    %     % Test correctness of rhs
-    %     rhs_sol = T_cur*uvp_sol;
-    %     www=rhs_sol-rhs_cur;
-    %     [w1,w2]=find(www>1e-6);
-    %     [rhs_sol(w1) rhs_d(w1) rhs_s(w1) rhs_cur(w1)]
+    % figure(4),clf,plot3(Node(1,:),Node(2,:),UVPu(:,1)-Uex,'p')
+    % figure(5),clf,plot3(Node(1,:),Node(2,:),UVPv(:,1)-Vex,'d')
+    % figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp(:,1)-Pex,'o')
+    % figure(8),clf,plot(T_cur*uvp_sol),hold,plot(rhs_cur,'r')
+    % % Test correctness of rhs
+    % rhs_sol = T_cur*uvp_sol;
+    % www=rhs_sol-rhs_cur;
+    % [w1,w2]=find(www>1e-6);
+    % [rhs_sol(w1) rhs_d(w1) rhs_s(w1) rhs_cur(w1)]
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -244,19 +244,19 @@ Stress_e_cur  = zeros(nface, 3);
 Stress_prev   = zeros(nface, 3);
 Stress_e_prev = zeros(nface, 3);
 while (time_cur<=Tmax) || (norm_diff>1e-5)
-    % %     disp(['Proceed with step ' int2str(k)])
-    %     uvp_sol_prev= uvp_sol;
+    % % disp(['Proceed with step ' int2str(k)])
+    % uvp_sol_prev= uvp_sol;
     % Set k=k+1, determine timestep dt(k) = t(k)-t(k-1)
-    % %     delta_t_cur = delta_t_prev;  % take the same time step
+    % % delta_t_cur = delta_t_prev;  % take the same time step
 
     Stress_prev  = Stress_cur;
     Stress_e_prev = Stress_e_cur;
 
     % Recover stress field from displacements
     % Stress_cur = SStime_app(UVPu,UVPv,Node,Edge,Face,Face_eorder9,Face_Parent,...
-    %  nnode,hx,hy,time_cur,Maxwell_time_inv);
+    %                              nnode,hx,hy,time_cur,Maxwell_time_inv);
     % [Pos, Stress_cur] = SStime_midpoint(UVPu,UVPv,UVPp, Node,Edge,Face,Face_eorder9,Face_Parent,...
-    %                                              nnode,hx,hy,time_cur,Maxwell_time_inv);
+    %                              nnode,hx,hy,time_cur,Maxwell_time_inv);
 
     if k == 1
         [Pos, Stress_cur] = SStime_midpoint(UVPu,UVPv,UVPp, Node,Edge,Face,Face_eorder9,Face_Parent,...
@@ -308,10 +308,10 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
     rhs_s_prev  = rhs_s;
     % Add the memory term
     rhs_cur0    = rhs_b + rhs_s + W - WV;  %
-    % %     disp(['Norm rhs_s:                        '  num2str(norm(rhs_s))])
-    % %     disp(['Norm rhs_W:                        '  num2str(norm(W))])
-    % %     disp(['Norm rhs_WV:                       '  num2str(norm(WV))])
-    % %     disp(['Norm rhs_cur before b.c.: '  num2str(norm(rhs_cur0))])
+    % % disp(['Norm rhs_s:                        '  num2str(norm(rhs_s))])
+    % % disp(['Norm rhs_W:                        '  num2str(norm(W))])
+    % % disp(['Norm rhs_WV:                       '  num2str(norm(WV))])
+    % % disp(['Norm rhs_cur before b.c.: '  num2str(norm(rhs_cur0))])
 
     % Apply Dirichlet b.c., corresponding to time_cur
     if wh=='g0'    % ... exact solution known, homogeneous material assumed
@@ -325,7 +325,7 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
         [T_cur,K,A,B] = Dirichlet_Esdo_matrix(T_cur0,K0,A0,B0,Node_flagx,Node_flagy,nnode);
         rhs_prev      = rhs_cur;
         [rhs_cur]     = Dirichlet_Esdo_rhs(rhs_cur0,Node_flagx,Node_flagy,nnode,nnodeP);
-        %        disp(['Norm rhs_cur after  b.c.: '  num2str(norm(rhs_cur))])
+        % disp(['Norm rhs_cur after  b.c.: '  num2str(norm(rhs_cur))])
     end
 
     switch test_problem
@@ -356,17 +356,17 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
             figure(6),clf,plot3(Node(1,1:nnodeP)',Node(2,1:nnodeP)',UVPp-Pex,'o')
 
             norm(UVPu-Uex),norm(UVPv-Vex), norm(UVPp-Pex)
-            %     figure(4),clf,plot3(Node(1,:),Node(2,:),UVPu(:,k),'p'),hold
-            %     figure(5),clf,plot3(Node(1,:),Node(2,:),UVPv(:,k),'d'),hold
-            %     figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp(:,k),'o') ,hold
+            % figure(4),clf,plot3(Node(1,:),Node(2,:),UVPu(:,k),'p'),hold
+            % figure(5),clf,plot3(Node(1,:),Node(2,:),UVPv(:,k),'d'),hold
+            % figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp(:,k),'o') ,hold
             %
-            %     figure(4),plot3(Node(1,:),Node(2,:),UVPu(:,k-1),'pc')
-            %     figure(5),plot3(Node(1,:),Node(2,:),UVPv(:,k-1),'dc')
-            %     figure(6),plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp(:,k-1),'oc')
+            % figure(4),plot3(Node(1,:),Node(2,:),UVPu(:,k-1),'pc')
+            % figure(5),plot3(Node(1,:),Node(2,:),UVPv(:,k-1),'dc')
+            % figure(6),plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp(:,k-1),'oc')
             %
-            %     figure(4),plot3(Node(1,:),Node(2,:),Uex,'pr')
-            %     figure(5),plot3(Node(1,:),Node(2,:),Vex,'dr')
-            %     figure(6),plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),Pex,'or')
+            % figure(4),plot3(Node(1,:),Node(2,:),Uex,'pr')
+            % figure(5),plot3(Node(1,:),Node(2,:),Vex,'dr')
+            % figure(6),plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),Pex,'or')
         case {9,10}
             cy = floor(time_cur*T_char/secs_per_year);
             nexy = nexy + 1;
@@ -386,13 +386,13 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
             if cy>=t_pr(cntr_cy)
                 disp(['Year ' int2str(cy) ', Max displ in y and x: ' num2str(UVPv(pmv)*U_char*L_char)  ' & ' num2str(UVPu(pmu)*U_char*L_char)])
 
-                %           ydis = L_char*(U_char*reshape(UVPv(id(:)), size(id)));
-                %           xdis = L_char*(U_char*reshape(UVPu(id(:)), size(id)));
-                %           h2 = figure(2);
-                %           p = plot(Node(1,id(1,:))*L_char, L_char*Node(2,id(1,:)) + ydis(1,:), '-.');
-                %           h3 = figure(3);
-                %           p = plot(Node(1,id(1,:))*L_char, L_char*Node(2,id(1,:)) + xdis(1,:), '-.');
-                %           drawnow
+                % ydis = L_char*(U_char*reshape(UVPv(id(:)), size(id)));
+                % xdis = L_char*(U_char*reshape(UVPu(id(:)), size(id)));
+                % h2 = figure(2);
+                % p = plot(Node(1,id(1,:))*L_char, L_char*Node(2,id(1,:)) + ydis(1,:), '-.');
+                % h3 = figure(3);
+                % p = plot(Node(1,id(1,:))*L_char, L_char*Node(2,id(1,:)) + xdis(1,:), '-.');
+                % drawnow
 
                 save([pars.outdir 'data-y' num2str(cy)], 'cy', 'Pos', 'L_char', 'U_char', 'M_char', 'Stress_cur', 'Node', 'UVPu', 'UVPv', 'UVPp', 'nnode_lvl', 'id', 'X', 'Y')
 
@@ -403,8 +403,7 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
     norm_dif = norm(uvp_cur-uvp_prev);
     norm_cur = norm(uvp_cur);
     norm_prev= norm(uvp_prev);
-    %     disp(['norm(uvp_cur-uvp_prev) ' num2str(norm(uvp_cur-uvp_prev)) ...
-    %           ' ,norm(uvp_cur) ' num2str(norm(uvp_cur))])
+    % disp(['norm(uvp_cur-uvp_prev) ' num2str(norm(uvp_cur-uvp_prev)) ' ,norm(uvp_cur) ' num2str(norm(uvp_cur))])
 end   %
 % max_diff = zeros(length(save_maxv),1);
 % for nn=2:length(save_maxv)
