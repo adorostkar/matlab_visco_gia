@@ -8,13 +8,13 @@
 % vec_coeff - ???? add description
 % --------------------------------------------------------------------
 function [E_elem,A_elem,B1_elem,B2_elem,M_elem,M0_elem,L_elem9,R_elem9]=...
-                Assm_ElAdSaddle_quadrTH_Q2Q1(Gauss_point,Gauss_weight,...
-                                             FUNP_all,DERP_all,FUND_all,DERD_all,...
-                                             CoordP,CoordD,vec_coeff,nju,wh)
-
+        Assm_ElAdSaddle_quadrTH_Q2Q1(Gauss_point,Gauss_weight,...
+        FUNP_all,DERP_all,FUND_all,DERD_all,...
+        CoordP,CoordD,vec_coeff,nju,wh)
+    
     % global test_problem
     % global lan mju
-
+    
     np    = 4;                    % number of points per f.e.
     npQ2  = 9;                    % number of points per f.e.
     nip   = size(Gauss_point,2);  % nip = number of integration points
@@ -51,44 +51,44 @@ function [E_elem,A_elem,B1_elem,B2_elem,M_elem,M0_elem,L_elem9,R_elem9]=...
         M0_elem = M0_elem + Det*Gauss_weight(k)*M_elem4;
         L_elemc = DerivP'*DerivP;                 % (4,4)=(4,1)*(1,4)
         L_elem4 = L_elem4 + Det*Gauss_weight(k)*L_elemc;
-
+        
         FUND   = FUND_all{k};     % (9x1)
         FUNDT  = FUND';
         DERD   = DERD_all{k};     % (2x9)
         DerivD = IJac*DERD;                      % (2xnpQ2)=(2x2)*(2xnpQ2)
         L_elem0= DerivD'*DerivD;
         L_elem = [L_elem0,Z;Z,L_elem0];
-
+        
         G1_elem= DerivD(1,:)'*FUNP;              % (npQ2,np)=(npQ2,1)*(1,np)
         G2_elem= DerivD(2,:)'*FUNP;              % (npQ2,np)=(npQ2,1)*(1,np)
-
+        
         R_elem = assm_rot_quad(DerivD);
         L_elem9= L_elem9 + Det*Gauss_weight(k)*L_elem; % Laplace terms only
         R_elem9= R_elem9 + Det*Gauss_weight(k)*R_elem; % rot terms only
-
+        
         %         E_elem = E_elem  + Det*Gauss_weight(k)*L_elem;% ... % (ndof x ndof)
         E_elem = E_elem  + 2*Det*Gauss_weight(k)*L_elem ... % (ndof x ndof)
             +   Det*Gauss_weight(k)*R_elem;    % rot terms
         A0_elem_b= advect_b(FUND,FUNDT,DerivD,Gauss_point(:,k),npQ2,vec_coeff,nju,wh); %pre-stress
         A0_elem_c= advect_c(FUND,FUNDT,DerivD,Gauss_point(:,k),npQ2,vec_coeff,nju,wh); %buoyancy
         A_elem = A_elem  + Det*Gauss_weight(k)*(-A0_elem_b + A0_elem_c); % advection terms
-
+        
         B1_elem= B1_elem + Det*Gauss_weight(k)*G1_elem;
         B2_elem= B2_elem + Det*Gauss_weight(k)*G2_elem;
-
+        
         M_elem9 = FUNDT*FUND;                     % (9,9)=(9,1)*(1,9)
         M_elem = M_elem + Det*Gauss_weight(k)*M_elem9;
     end
-
-
-
+    
+    
+    
     return
-
-
+    
+    
     % % The reference element
     % CoordP=[-1 -1;-1 1;1 1;1 -1];
     % CoordD=[-1 -1;-1 1;1 1;1 -1;-1 0;0 1; 1 0; 0 -1; 0 0];
-
+    
     % symbolic computations
     % 	b1 = vec_coeff(1);
     % 	b2 = vec_coeff(2);
@@ -122,3 +122,4 @@ function [E_elem,A_elem,B1_elem,B2_elem,M_elem,M0_elem,L_elem9,R_elem9]=...
     %
     % %      APelem= advect_modified(A_elem);
     % % subs(fiPdy,{x,y},{[-1/sqrt(3);-1/sqrt(3)],[1/sqrt(3);1/sqrt(3)]})
+    

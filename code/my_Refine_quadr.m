@@ -5,18 +5,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [Node,Edge,Face,...
-          Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,Face_flag,Face_thick] = ...
-              my_Refine_quadr(Node,Edge,Face,...
-                              Node_flagx,Node_flagy,...
-                              Edge_flagx,Edge_flagy,Face_flag,Face_thick)
-
+        Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,Face_flag,Face_thick] = ...
+        my_Refine_quadr(Node,Edge,Face,...
+        Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,Face_flag,Face_thick)
+    
     nnode = size(Node,2);
     nedge = size(Edge,2);
     nface = size(Face,2);
-
+    
     new_node = 0;
     new_edge = 0;
-
+    
     % Make Node, Edge and Face immediately as large as needed
     % Every face will be divided in 4
     Face(1,4*nface)      = 0;
@@ -30,7 +29,7 @@ function [Node,Edge,Face,...
     Edge(1,4*nface+2*nedge)       = 0;
     Edge_flagx(4*nface+2*nedge,1) = 0;
     Edge_flagy(4*nface+2*nedge,1) = 0;
-
+    
     % -------------------------- halve the edges
     for iedge = 1:nedge,
         inode1 = Edge(1,iedge); inode2 = Edge(2,iedge);
@@ -50,17 +49,17 @@ function [Node,Edge,Face,...
         Node_flagy(nnode+new_node,1) = Edge_flagy(iedge,1);
     end
     % --------------------- add internal edges and new faces
-
+    
     new_face  = nface+1;
     iedge     = zeros(1,6);
     node_mid  = zeros(1,3);
     Face2Edge = zeros(1,3);
     CurEdge   = nedge*2+1;   % CurEdge=size(Edge,2)+1;
-
+    
     % ---------------- The ONLY assumption made is that the order of the edge
     %                  numbers defining a face is such that they make a
     %                  closed path (kept through the refinement)
-
+    
     for iface = 1:nface,  % ------------- begin loop over edges
         for j = 1:4,
             old_edge(j) = Face(j,iface);
@@ -114,7 +113,7 @@ function [Node,Edge,Face,...
         new_node = new_node + 1;
         xcoor=zeros(2,1); for j=1:2:7, xcoor = xcoor + Node(:,local_Edge(1,j)); end
         Node(:,nnode+new_node) = xcoor./4;
-
+        
         % ----------------------- add four more internal edges
         Edge(1,CurEdge)   = local_Edge(2,1);
         Edge(2,CurEdge)   = nnode+new_node;
@@ -124,26 +123,27 @@ function [Node,Edge,Face,...
         Edge(2,CurEdge+2) = nnode+new_node;
         Edge(1,CurEdge+3) = local_Edge(2,7);
         Edge(2,CurEdge+3) = nnode+new_node;
-
+        
         % ----------- put the first quadrilateral at the place of the old one
         Face(:,iface) = [local_edge(1);CurEdge;CurEdge+3;local_edge(8)];
-
+        
         % ----------------------- update faces
         Face(:,new_face) = [local_edge(2);local_edge(3);CurEdge+1;CurEdge];
         Face(:,new_face+1) = [local_edge(4);local_edge(5);CurEdge+2;CurEdge+1];
         Face(:,new_face+2) = [local_edge(6);local_edge(7);CurEdge+3;CurEdge+2];
-
+        
         Face_flag(new_face,  1) = Face_flag(iface,1);
         Face_flag(new_face+1,1) = Face_flag(iface,1);
         Face_flag(new_face+2,1) = Face_flag(iface,1);
-
+        
         Face_thick(new_face,  1) = Face_thick(iface,1);
         Face_thick(new_face+1,1) = Face_thick(iface,1);
         Face_thick(new_face+2,1) = Face_thick(iface,1);
-
+        
         CurEdge  = CurEdge  + 4;
         new_face = new_face + 3;
-
+        
     end   % ------------------------------ end loop over faces
-
+    
     return
+    

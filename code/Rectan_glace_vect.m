@@ -12,10 +12,10 @@
 function [Node,Edge,Face,...
         Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,...
         Face_flag,Face_thick] = Rectan_glace_vect(L,H,xc,yc,Nx,Ny,...
-                                                  domains,Disco,wh)
-
+        domains,Disco,wh)
+    
     global test_problem
-
+    
     nnode = Nx*Ny;
     Node  = zeros(2,nnode);
     for l=1:Ny,
@@ -24,7 +24,7 @@ function [Node,Edge,Face,...
             Node(2,(l-1)*Nx + k) = yc(l);
         end
     end
-
+    
     % Edge
     nedge = Nx*(Ny-1)+Ny*(Nx-1);
     Edge  = zeros(2,nedge);
@@ -47,7 +47,7 @@ function [Node,Edge,Face,...
         Edge(1,edge_no) =  (l-1)*Nx + k;
         Edge(2,edge_no) =  (l-1)*Nx + k + 1;
     end
-
+    
     % Face
     nface = (Nx-1)*(Ny-1);
     Face  = zeros(4,nface);
@@ -67,16 +67,16 @@ function [Node,Edge,Face,...
             end
         end
     end
-
+    
     %Bvisual_mesh(Node,Edge,Face,1,1,1,3,16)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    
     % determine the box bounds
     xmin = min(Node(1,:));
     xmax = max(Node(1,:));
     ymin = min(Node(2,:));
     ymax = max(Node(2,:));
-
+    
     % Determine the domain boundaries
     %    y
     %    ^
@@ -92,7 +92,7 @@ function [Node,Edge,Face,...
     G2=find(Node(1,:)==xmax);
     G3=find(Node(2,:)==ymin);
     G4=find(Node(2,:)==ymax);
-
+    
     % Initialize arrays for Dirichlet boundary nodes and edges
     nnode = size(Node,2);
     Node_flagx(1:nnode,1)  = 0;
@@ -100,7 +100,7 @@ function [Node,Edge,Face,...
     nedge = size(Edge,2);
     Edge_flagx(1:nedge,1) = 0;
     Edge_flagy(1:nedge,1) = 0;
-
+    
     switch test_problem
         case {0,8,9}
             if strcmp(wh,'g0'), % prefabricated solution
@@ -152,9 +152,9 @@ function [Node,Edge,Face,...
                 end
             end
     end  %end switch on test_problem
-
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nface = size(Face,2);
     Face_thick(1:nface,1) = 1;
-
+    
     return

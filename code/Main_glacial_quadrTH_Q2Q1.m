@@ -32,18 +32,17 @@ global advec_const
 global test_problem
 global L_char M_char N_char U_char R_char G_char T_char T0
 
-pars = Parameters();
 % Debug variable
 % 1 - print debug texts
 % 0 - no debug
 global debug;
-debug = pars.debug;
+debug = 1;
 
 % % Variables
 % 0 - No additional output(figure and text)
 % 1 - Only figures
 % 2 - everything
-verbose = pars.verbose;
+verbose = 0;
 
 np    = 4;  % number of points in the finite element
 dim   = 2;  % number of degree of freedom (elasticity part)
@@ -59,27 +58,21 @@ ndof = dim*dofD;
 % lll = 2;
 % kkk = 1;
 
-mkdir(pars.outdir)
-diary([pars.outdir 'diary.txt'])
+mkdir('./out')
+diary('./out/diary')
 % % Preparing parameters and mesh
 tic
-
-test_problem = pars.test_problem; % visco-elasticity
+%% Test problem identifiers
+% test_problem = 0; % pure elasticity in unit square, no surface  forces
+% test_problem = 8; % visco-elasticity in unit square, no surface forces
+test_problem = 9; % visco-elasticity in unit square, uniform  load
+% test_problem = 10; % visco-elasticity
 switch test_problem
     case {0,8}
         wh = 'g0'; % manufactured solution
-        beta = pars.beta;
-        no_domains = pars.no_domains;
-        Emagn = pars.Emagn;
-        [L,H,l_ice,h_ice,rho_ice,rho_earth,...
-            Disco,Discoef,grav,load_surf,...
-            T_LGM, T_EOG, T, delta_t_char] = Elasto_parameters(no_domains,wh,Emagn);
-        H0=sign(H)*max(abs(H));
-        Nx = 3;
-        Ny = 3;
-        [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_TH(L,H0,Nx,Ny);
-    case 9
-        wh = 'g9'; % uniform load on the top
+        beta = 0.1;  % exponent in the 'exact' solution
+        no_domains = 2;
+        Emagn = 1;
         [L,H,l_ice,h_ice,rho_ice,rho_earth,...
             Disco,Discoef,grav,load_surf,...
             T_LGM, T_EOG, T, delta_t_char] = Elasto_parameters9(no_domains,wh,Emagn);
@@ -87,10 +80,31 @@ switch test_problem
         Nx = 3;
         Ny = 3;
         [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_TH(L,H0,Nx,Ny);
+    case 9
+        wh = 'g9'; % uniform load on the top
+        no_domains = 2;
+        Emagn=1;
+        beta = 0.1; % to be checked !!!
+        % ------------------- unit square
+        %      [L,H,l_ice,h_ice,rho_ice,rho_earth,...
+        %      Disco,Discoef,grav,load_surf,...
+        %      T_LGM, T_EOG, T, delta_t_char] = Elasto_parameters(no_domains,wh,Emagn);
+        %      H0=sign(H)*max(abs(H));
+        %       Nx = 3;
+        %       Ny = 3;
+        
+        % ------------------- GIA geometry
+        [L,H,l_ice,h_ice,rho_ice,rho_earth,...
+            Disco,Discoef,grav,load_surf,...
+            T_LGM, T_EOG, T, delta_t_char] = Visco_parameters_const_load(no_domains,wh,Emagn);
+        H0=-max(abs(H));
+        Nx = 11; %L/l_ice+1;      % ensure mesh aligned with the ice after one refinement
+        Ny = 5; %abs(H0)/l_ice+1;
+        [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_TH(L,H0,Nx,Ny);
     case 10
         wh = 'gs';  Maxwell_time_inv =0;
-        no_domains = pars.no_domains;
-        Emagn = pars.Emagn; % can be 1, 10, 100 (jump in E between the two subdomains)
+        no_domains = 2;
+        Emagn = 1; % can be 1, 10, 100 (jump in E between the two subdomains)
         test_case = 4;
         switch test_case
             case 1  % Bjorn
@@ -108,7 +122,7 @@ switch test_problem
                 H0=-max(abs(H));
                 Nx = 11;%L/(2*l_ice)+1;      % ensure mesh aligned with the ice after one refinement
                 Ny = 5;%abs(H0)/(2*l_ice)+1;
-
+                
                 [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_TH_wu92(L,H0,Nx,Ny);
                 %  [xc,yc,hx,hy,Nx,Ny] = Glace_coord_vectors_Wu_coarse(L,H,l_ice);
             case 3  % Wu 1998
@@ -135,7 +149,7 @@ end
     Node_flagx,Node_flagy,...
     Edge_flagx,Edge_flagy,...
     Face_flag,Face_thick] = Rectan_glace_vect(L,H,xc,yc,Nx,Ny,...
-                                              no_domains,Disco,wh);
+    no_domains,Disco,wh);
 
 
 % Visualise the mesh
@@ -150,7 +164,7 @@ hx = hx/2^nrefin;
 hy = hy/2^nrefin;
 h  = min(abs(hx),min(abs(hy)));
 sigma = h^2;
-% disp('sigma  = h^2')
+%    disp('sigma  = h^2')
 
 solver_type = 1;
 levels    = nrefin + 1;
@@ -167,12 +181,12 @@ for lvl=1:nrefin,
         Node_flagx,Node_flagy,...
         Edge_flagx,Edge_flagy,...
         Face_flag,Face_thick] = my_Refine_quadr(Node,Edge,Face,...
-                                                Node_flagx,Node_flagy,...
-                                                Edge_flagx,Edge_flagy,...
-                                                Face_flag,Face_thick);
+        Node_flagx,Node_flagy,...
+        Edge_flagx,Edge_flagy,...
+        Face_flag,Face_thick);
     nface_lvl(lvl+1) = size(Face,2);
     nnode_lvl(lvl+1) = size(Node,2);
-    % figure(1),Bvisual_mesh(Node,Edge,Face,1,1,1,0,16)
+    %     figure(1),Bvisual_mesh(Node,Edge,Face,1,1,1,0,16)
 end
 
 nnodeP = size(Node,2);
@@ -197,14 +211,14 @@ nface = 4*nfaceP;      % number of subdomains (for the displacements)
 Edge_Node = spalloc(nedgeP,nnodeP,2*nedgeP);
 Face_Edge = spalloc(nfaceP,nedgeP,4*nedgeP);
 for iedge=1:nedgeP,
-    % vf = Edge(:,iedge)';
-    % Edge_Node(iedge,vf)=1;
+    %     vf = Edge(:,iedge)';
+    %     Edge_Node(iedge,vf)=1;
     Edge_Node(iedge,Edge(1,iedge))=1;
     Edge_Node(iedge,Edge(2,iedge))=1;
 end
 for iface=1:nfaceP,
-    % vf=Face(:,iface)';
-    % Face_Edge(iface,vf)=1;
+    %     vf=Face(:,iface)';
+    %     Face_Edge(iface,vf)=1;
     Face_Edge(iface,Face(1,iface))=1;
     Face_Edge(iface,Face(2,iface))=1;
     Face_Edge(iface,Face(3,iface))=1;
@@ -265,11 +279,10 @@ end % switch test_problem
     Face_flag,Face_thick,...
     Face_Node,Face_Parent,...
     Face_eorder9,Face_eorder4,...
-    nface_lvl,nnode_lvl] = ...
-         my_Refine_quadr_hier(Node,Edge,Face,...
-                              Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,...
-                              Face_flag,Face_thick,nface_lvl,nnode_lvl,levels);
-%  figure(1),clf,Bvisual_mesh(Node,Edge,Face,1,1,1,3,16)
+    nface_lvl,nnode_lvl] = my_Refine_quadr_hier(Node,Edge,Face,...
+    Node_flagx,Node_flagy,Edge_flagx,Edge_flagy,...
+    Face_flag,Face_thick,nface_lvl,nnode_lvl,levels);
+%    figure(1),clf,Bvisual_mesh(Node,Edge,Face,1,1,1,3,16)
 hx = hx/2;
 hy = hy/2;
 
@@ -281,14 +294,14 @@ nface = size(Face,2);      % number of subdomains (for the displacements)
 Edge_Node = spalloc(nedge,nnode,2*nedge);
 Face_Edge = spalloc(nface,nedge,4*nedge);
 for iedge=1:nedge,
-    % vf = Edge(:,iedge)';
-    % Edge_Node(iedge,vf)=1;
+    %     vf = Edge(:,iedge)';
+    %     Edge_Node(iedge,vf)=1;
     Edge_Node(iedge,Edge(1,iedge))=1;
     Edge_Node(iedge,Edge(2,iedge))=1;
 end
 for iface=1:nface,
-    % vf=Face(:,iface)';
-    % Face_Edge(iface,vf)=1;
+    %     vf=Face(:,iface)';
+    %     Face_Edge(iface,vf)=1;
     Face_Edge(iedge,Face(1,iface))=1;
     Face_Edge(iedge,Face(2,iface))=1;
     Face_Edge(iedge,Face(3,iface))=1;
@@ -302,7 +315,7 @@ else
     Surface_Nodes = find(Node(2,:)==ymax); % all surface nodes
 end
 % ------------ detect boundary edges
-% bndry_edge = zeros(nedge,1);
+%bndry_edge = zeros(nedge,1);
 bndry_edge = sum(Face_Edge,1);    % The boundary edges are with sum '1'
 [noi,Bndry_Edges]=find(bndry_edge==1); % Bndry_Edges is a list of boundary edges ONLY!
 
@@ -315,10 +328,8 @@ disp(' Start the visco-elastic solver.')
 Tmax = T;%input(' Run till time: ');
 
 eps_inner = 5e-1;
-Visco_elastic_solverTH_Q2Q1
-
-% Visco_elastic_solverTH_Q2Q1_homog_ODE
-
-% Visco_elastic_solverTH_Q2Q1_ODEtil
+Visco_elastic_solverTH_Q2Q1    %  Numerical integration
+%Visco_elastic_solverTH_Q2Q1_SeparableKernel_ODE  % Separable kernel  formulation
+%  Visco_elastic_solverTH_Q2Q1_ODE   %  Petersson-Sj?gren
 
 return

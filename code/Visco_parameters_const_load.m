@@ -56,7 +56,7 @@
 %
 function [L,H,l_ice,h_ice,rho_ice,rho_earth,...
         Disco,Discoef,grav,load_surf,...
-        T_LGM, T_EOG, T, delta_t_char] = visco_parameters(domains,wh,Emagn)
+        T_LGM, T_EOG, T, delta_t_char] = Visco_parameters_const_load(domains,wh,Emagn)
     
     global L_char M_char N_char U_char R_char G_char T_char T0
     global rhs_const
@@ -69,18 +69,15 @@ function [L,H,l_ice,h_ice,rho_ice,rho_earth,...
     % E_domains = 1.0e+11*ones(domains,1); % Young's modulus, Pa
     E_domains(2,1)=E_domains(2,1)*Emagn;
     
-    L0         = 5e+7; %1e+7;   % m
-    H0(1)      =-2e+6;   % m
-    H0(2)      =-4e+6;   % m
-    % L0         = 1e+6; %1e+7;   % m
-    % H0(1)      =-5e+5;   % m
-    % H0(2)      =-1e+6;   % m
-    l_ice0     = 1e+6;   % m
-    h_ice0     = 2e+3;   % m
-    rho_ice0   =  917;   % kg/m^3
-    rho_earth0 = 3300;   % kg/m^3
-    nju(1)     = 0.4999;   % dimensionless
-    nju(2)     = 0.4999;   % dimensionless (to be varied)
+    L0              = 1e+7;   % m   1e+7
+    H0(1)         =-2e+5;   % m -5e+7
+    H0(2)         =-4e+6;   % m -1e+7
+    l_ice0        =  1e+7;   % m  1e+7
+    h_ice0       = 2.14e+3;   % m   2e+3
+    rho_ice0   =  917;     % kg/m^3
+    rho_earth0= 3300;   % kg/m^3
+    nju(1)     = 0.2;   % dimensionless
+    nju(2)     = 0.2;   % dimensionless (to be varied)
     eta0       = 1.0e+21;  % Viscosity Pa s was 21
     % eta0       = 1.0e+22;  % Viscosity Pa s, Experiment A56
     grav0      = 9.81;   % m/s^2
@@ -100,12 +97,12 @@ function [L,H,l_ice,h_ice,rho_ice,rho_earth,...
     % - - - - - - characteristic values to obtain dimensionless problem
     L_char  = L0; %max(abs(L),abs(H));
     M_char  = E0;       %max(E_domains) in all subdomains
-    U_char  = 1;        % not used, dimensionless by def.
-    G_char  = 1;%grav0;
-    R_char  = 1;%rho_earth0;
+    U_char  = 1;%L_char^2/M_char;        % not used, dimensionless by def.
+    G_char  = grav0;
+    R_char  = rho_earth0;
     N_char  = eta0;
-    % T_char  = 100*secs_per_year; % sinking stops too early
-    T_char  = 500*secs_per_year; %
+    % T_char  = 100*secs_per_year; %
+    T_char  = 5000*secs_per_year; %
     
     % test for dominating convection:
     L_char*grav0*rho_earth0/E0
@@ -135,10 +132,10 @@ function [L,H,l_ice,h_ice,rho_ice,rho_earth,...
     
     Discoef(1,1:domains) = nju(1:domains);
     Discoef(2,1:domains) = E';
-    mju                  = mju0/M_char;
-    Maxwell_time_inv     = mju0(1:domains)'/eta0*T_char;
+    mju                                = mju0/M_char;
+    Maxwell_time_inv       = mju0(1:domains)'/eta0*T_char;
     Discoef(3,1:domains) = Maxwell_time_inv;% inverse of the Maxwell time
     
-    rhs_const   = L_char/M_char/U_char*G_char*R_char;
-    advec_const = L_char*G_char*R_char/M_char;
+    rhs_const      = L_char/(M_char*U_char)*G_char*R_char;
+    advec_const = L_char/(M_char*U_char);%*G_char*R_char;
     return
