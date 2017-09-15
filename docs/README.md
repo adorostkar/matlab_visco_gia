@@ -1,2 +1,4 @@
-# matlab_visco_gia
+# Glacial Isostatic Adjustment
 Matlab implementation of the Viscoelastic GIA
+
+## The problem
