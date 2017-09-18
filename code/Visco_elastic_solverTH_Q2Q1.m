@@ -234,7 +234,9 @@ figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp_exact-UVPp,'v');
 % sparse(UVPv(v)),sparse(UVPv_exact(v))
 % [UVPp(vp), UVPp_exact(vp)]
 
+fprintf('%9.7f & %1e & %e & %e \\\\ \n',nju,-max(abs(UVPv_exact))*L_char,-max(abs(UVPv))*L_char,norm((UVPv_exact-UVPv)*L_char,inf))
 disp('End elastic step.')
+return
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Viscoelastic solver with accumulation of the visco-effects, Trapetz method
 
