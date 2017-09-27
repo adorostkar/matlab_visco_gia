@@ -70,7 +70,7 @@ function [L,H,l_ice,h_ice,rho_ice,rho_earth,...
     E_domains(2,1)=E_domains(2,1)*Emagn;
     
     L0              = 1e+7;   % m   1e+7
-    H0(1)         =-2e+5;   % m -5e+7
+    H0(1)         =-2e+6;   % m -5e+7
     H0(2)         =-4e+6;   % m -1e+7
     l_ice0        =  1e+7;   % m  1e+7
     h_ice0       = 2.14e+3;   % m   2e+3
@@ -137,5 +137,5 @@ function [L,H,l_ice,h_ice,rho_ice,rho_earth,...
     Discoef(3,1:domains) = Maxwell_time_inv;% inverse of the Maxwell time
     
     rhs_const      = L_char/(M_char*U_char)*G_char*R_char;
-    advec_const = L_char/(M_char*U_char);%*G_char*R_char;
+    advec_const = L_char/(M_char*U_char)*G_char*R_char;
     return
