@@ -106,9 +106,9 @@ if test_problem < 10,
      vec_coeff = [0,-rho_earth*grav,0,0]
 else
     disp('WITH PRE-STRESS ADVECTION.')  % with advection
-%     vec_coeff = [0,0,0,0]
-    %   vec_coeff = [0,-rho_earth*grav,0, -rho_earth*grav]
-     vec_coeff = [0,-rho_earth*grav,0,0]
+    vec_coeff = [0,0,0,0]
+%     vec_coeff = [0,-rho_earth*grav,0, -rho_earth*grav]
+%      vec_coeff = [0,-rho_earth*grav,0,0]
 end
 % vec_coeff = vec_coeff.*advec_const  % scaling of the advection terms
 
@@ -239,7 +239,7 @@ figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp_exact-UVPp,'v');
 
 fprintf('%9.7f & %1e & %e & %e \\\\ \n',nju,-max(abs(UVPv_exact)),-max(abs(UVPv)*L_char),norm((UVPv_exact-UVPv*L_char),inf))
 disp('End elastic step.')
-return
+% return
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Viscoelastic solver with accumulation of the visco-effects, Trapetz method
 
@@ -257,7 +257,7 @@ T_cur0 = S_cur0 - 0.5*Maxwell_time_inv*delta_t_cur*Q_cur0;
 % uvp_sol_prev = [Uex;Vex;Pex];
 cntr_cy = 1;
 nexy = 0;
-t_pr = [1,2,3,4,5,6,7,8,9,10,50,100,200,300,400,500,600,1000,[1500:500:3000]];
+t_pr = [1,2,3,4,5,6,7,8,9,10,50,100];%,200,300,400,500,600,1000,[1500:500:3000]];
 k = 1;
 % Save the previous solution
 uvp_prev    = uvp_cur;
@@ -484,6 +484,8 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
         UVPv_exact = surface_load*dnm*(bottom-Node(2,:))'*exf;
         UVPp_exact = gradV*ones(nnodeP,1);
    else % ------------------- with prestress
+%        alfas=alfa*R_char*G_char/M_char;
+%        UVPv_exact = rho_ice*h_ice*grav*dnm*C_char*alfas/(alfas+1)*(bottom-Node(2,:)')*L_char*(1+1/alfas*exp(-(1+alfas)*time_cur)); 
        alfat= alfa*exb;
        betat= beta*exf; 
     UVPv_exact = -rho_ice*h_ice/rho_earth*L_char*exp(2*Maxwell_time_inv*time_cur)*...
@@ -493,6 +495,7 @@ while (time_cur<=Tmax) || (norm_diff>1e-5)
     figure(5),clf,plot3(Node(1,:),Node(2,:),UVPv_exact-UVPv*L_char,'v');
     figure(6),clf,plot3(Node(1,1:nnodeP),Node(2,1:nnodeP),UVPp_exact-UVPp,'v');
     fprintf('%9.7f & %1e & %e & %e \\\\ \n',nju,-max(abs(UVPv_exact)),-max(abs(UVPv)*L_char),norm((UVPv_exact-UVPv*L_char),inf))
+    max(abs(UVPp_exact)),max(abs(UVPp))
 end   %
 % max_diff = zeros(length(save_maxv),1);
 % for nn=2:length(save_maxv)
