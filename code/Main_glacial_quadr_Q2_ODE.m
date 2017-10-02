@@ -118,7 +118,7 @@ switch test_case
     otherwise  % standard testing
        [L,H,l_ice,h_ice,rho_ice,rho_earth,...
           Disco,Discoef,grav,load_surf,...
-          T_LGM, T_EOG, T, delta_t_char] = Visco_parameters(no_domains,wh,Emagn);
+          T_LGM, T_EOG, T, delta_t_char] = Visco_parameters_const_load(no_domains,wh,Emagn);
        H0=-max(abs(H));
        Nx = L/l_ice+1;      % ensure mesh aligned with the ice after one refinement
        Ny = abs(H0)/l_ice+1;
