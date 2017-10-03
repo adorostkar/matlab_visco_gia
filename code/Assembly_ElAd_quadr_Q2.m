@@ -37,10 +37,11 @@ lengthK=nface*dofD*dofD;
 KI  = zeros(lengthK,1);
 KJ  = zeros(lengthK,1);
 KV  = zeros(lengthK,1);
+nextK = 0;
 
-LI  = zeros(lengthK,1);  % Laplace only
-LJ  = zeros(lengthK,1);
-LV  = zeros(lengthK,1);
+% LI  = zeros(lengthK,1);  % Laplace only
+% LJ  = zeros(lengthK,1);
+% LV  = zeros(lengthK,1);
 
 RI  = zeros(lengthK,1);  % Rot only
 RJ  = zeros(lengthK,1);
@@ -50,10 +51,9 @@ GI  = zeros(lengthK,1);  % Grad-Div only
 GJ  = zeros(lengthK,1);
 GV  = zeros(lengthK,1);
 
-MI  = zeros(lengthK,1);  % Laplace only
-MJ  = zeros(lengthK,1);
-MV  = zeros(lengthK,1);
-nextK = 0;
+% MI  = zeros(lengthK,1);  % Laplace only
+% MJ  = zeros(lengthK,1);
+% MV  = zeros(lengthK,1);
 
 lengthA=nface*dofD*dofD;  % Pre-stress advection only
 AI  = zeros(lengthA,1);
@@ -136,18 +136,18 @@ end
            KJ(nextK) = js;
            KV(nextK) = El_elem(ii,jj);
 
-           LI(nextK) = is;
-           LJ(nextK) = js;
-           LV(nextK) = L_elem9(ii,jj);     % vector Laplace
+%            LI(nextK) = is;
+%            LJ(nextK) = js;
+%            LV(nextK) = L_elem9(ii,jj);     % vector Laplace
            RI(nextK) = is;
            RJ(nextK) = js;
            RV(nextK) = R_elem9(ii,jj);     % rot
            GI(nextK) = is;
            GJ(nextK) = js;
            GV(nextK) = G_elem9(ii,jj);     % grad-div
-           MI(nextK) = is;
-           MJ(nextK) = js;
-           MV(nextK) = M_elem9(ii,jj);            % mass matrix
+%            MI(nextK) = is;
+%            MJ(nextK) = js;
+%            MV(nextK) = M_elem9(ii,jj);            % mass matrix
 
            nextA = nextA + 1;
            AI(nextA) = is;
@@ -160,13 +160,14 @@ end
 end             % end pressure iface_p-loop
 
 KI = KI(1:nextK,1); KJ = KJ(1:nextK,1); KV = KV(1:nextK,1);
-LI = LI(1:nextK,1); LJ = KJ(1:nextK,1); LV = LV(1:nextK,1);
-MI = MI(1:nextK,1); MJ = MJ(1:nextK,1); MV = MV(1:nextK,1);
+% LI = LI(1:nextK,1); LJ = KJ(1:nextK,1); LV = LV(1:nextK,1);
+% MI = MI(1:nextK,1); MJ = MJ(1:nextK,1); MV = MV(1:nextK,1);
 AI = AI(1:nextA,1); AJ = AJ(1:nextA,1); AV = AV(1:nextA,1); % 
 
 K  = sparse(KI, KJ, KV);
-L  = sparse(LI, LJ, LV);
-M  = sparse(MI, MJ, MV);
+% L  = sparse(LI, LJ, LV);
+% M  = sparse(MI, MJ, MV);
+L = []; M = [];
 A  = advec_const*sparse(AI, AJ, AV);
 
 return

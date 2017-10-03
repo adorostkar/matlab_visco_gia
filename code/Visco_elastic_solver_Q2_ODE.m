@@ -56,9 +56,6 @@ else
 %  vec_coeff = [0,-rho_earth*grav,0,0]
 end
 % vec_coeff = vec_coeff0.*advec_const  % scaling of the advection terms
-
-theta = 0.5;    % in this case we use Trapetz method
-
 k = 1;
 secs_per_year = 365*24*3600; % Duration of a year in seconds 3.1536e+7
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -151,7 +148,7 @@ end
 % values of the solution at the Dirichlet b.c. change with time.
 %
 % Forward Euler or Backward Euler for the time discretization
-% Forward Euler: (currently not used
+% Forward Euler: (currently not used)
 %(K+A)ut_{k+1} = ((1-2*delta_t*alpha)*K-(1-delta_t*aplha)*A)ut_{k} + delta_t*alpha*f(k)
 % Backward Euler : (currently used)
 % ((1+2*alpha*delta_t)*K+(1+alpha*delta_t)A)U(k+1) = (K+A)U(K) + alpha*delta_t*f(k+1)
@@ -163,10 +160,14 @@ end
 
 % I1: Form the matrix appearing on the right hane side (no b.c. applied)
 tau = Maxwell_time_inv*delta_t_cur;
-cK = 1+Maxwell_time_inv*(Maxwell_time_inv+1)*delta_t_cur;
-cA = 1+Maxwell_time_inv*Maxwell_time_inv*delta_t_cur;
+cK = 1+2*tau;
+cA = 1+tau;
 T_cur0 = cK*K0 + cA*A0;
 S0         = K0 + A0;
+
+% ----> Clear unnecessary arrays
+clear A0
+
 uv_til_cur = zeros(nall,1);  % initial condition for the auxiliary variable
 % ------------------------------- Loop over time
 % Implicit Euler
@@ -177,59 +178,43 @@ nexy = 0;
 t_pr = [1,2,3,4,5,6,7,8,9,10,50,100];%,200,300,400,500,600,1000,[1500:500:10000]];
 k = 1;
 nface = size(Face_eorder9, 2);
-% % Stress_cur    = zeros(nface, 3);
-% % Stress_e_cur  = zeros(nface, 3);
-% % Stress_prev   = zeros(nface, 3)
-% % Stress_e_prev = zeros(nface, 3);
+UV=zeros(2*nnode,length(t_pr)+1);   % array to save the displacements in chosen years
+next_store = 1;
+UV(:,next_store) = uv_elast;                                 % store the elastic response
 
 while (time_cur<=Tmax)
 % %     disp(['Proceed with step ' int2str(k)])
- %     uv_sol_prev= uv_sol;
-    % Set k=k+1, determine timestep dt(k) = t(k)-t(k-1)
-% %     delta_t_cur = delta_t_prev;  % take the same time step
-
-% % Stress_prev  = Stress_cur;
-% % Stress_e_prev = Stress_e_cur;
-
-% Recover stress field from displacements
-% Stress_cur = SStime_app(UVu,UVv,Node,Edge,Face,Face_eorder9,Face_Parent,...
-                                            %  nnode,hx,hy,time_cur,Maxwell_time_inv);
-% [Pos, Stress_cur] = SStime_midpoint(UVu,UVv,UVp, Node,Edge,Face,Face_eorder9,Face_Parent,...
-%                                              nnode,hx,hy,time_cur,Maxwell_time_inv);
-
-% % if k == 1
-% %     [Pos, Stress_cur] = SStime_midpoint(UVu,UVv,UVp, Node,Edge,Face,Face_eorder9,Face_Parent,...
-% %                                              nnode,hx,hy,time_cur,Maxwell_time_inv);
-% % else
-% %     [Stress_cur, Stress_e_cur] = SStime_mid_iter(Stress_prev, Stress_e_prev, delta_t_cur, UVu,UVv,UVp, Node,Edge,Face,Face_eorder9,Face_Parent,...
-% %                                              nnode,hx,hy,time_cur,Maxwell_time_inv,k);
-% % end
+% Set k=k+1, determine timestep dt(k) = t(k)-t(k-1)
+%     delta_t_cur = delta_t_prev;  % take the same time step
 
 % Save the previous solution
-    uv_til_prev    = uv_til_cur;
-    uv_prev          = uv_cur;
+    uv_til_prev    = uv_til_cur;  % auxiliary varisble
+    uv_prev          = uv_cur;      % displacements
  
  % Update the time
     time_cur = time_cur + delta_t_cur;
 
- % Compute new b.f. 
-    rhs_b = Assembly_ElAd_quadr_Q2_rhs(time_cur,Node,...
-                           Face_eorder9,Face_eorder4,...
-                           Face_flag,Face_thick,Discoef,...
-                           Gauss_point,Gauss_weight,...
-                           FUND_all,DERP_all,...
-                           nnode_lvl,nface_lvl,lvl_total,vec_coeff,wh);
+% Compute body forces at next time instance 
+    rhs_b = spalloc(2*nnode,1,0); % no body forces
+%     rhs_b = Assembly_ElAd_quadr_Q2_rhs(time_cur,Node,...
+%                            Face_eorder9,Face_eorder4,...
+%                            Face_flag,Face_thick,Discoef,...
+%                            Gauss_point,Gauss_weight,...
+%                            FUND_all,DERP_all,...
+%                            nnode_lvl,nface_lvl,lvl_total,vec_coeff,wh);
  
-    % Compute the surface forces
-    if flag_incr == 1
-        rhs_s = zeros(nall,1);
-    else
-        [rhs_s] = Assembly_rhs_Q2(Node,Edge,...
+% Compute surface forces  at next time instance 
+       [rhs_s_new] = Assembly_rhs_Q2(Node,Edge,...
                                wh,l_ice,h_ice,rho_ice,grav,...
                                Load_Edges,Load_Edges_list,...
                                nnodeP,time_cur,T_BEG,T_LGM,T_EOG);
+                           
+    if flag_incr == 1
+        rhs_s = rhs_s_new-rhs_s_prev;  % incremental surface force
+    else
+       rhs_s = rhs_s_new;                        % full furface force at next time step
     end
-     % Update the rhs
+     % Update the rhs of the ODE
      rhs_cur0 = S0*uv_til_prev + tau*rhs_s;
  
      %% ------------------ impose Dirichlet b.c.; standard formulation ------------
@@ -245,21 +230,18 @@ end
  
     % Solve the system
     uv_til_cur = T_cur\rhs_cur;  
-
-% %     if flag_incr == 1 % incremental form
-% %         uv_cur_incr = T_cur\rhs_cur;
-% %         uv_cur = uv_elast + up_cur_incr;
-% %     else
-% %          uv_til_cur = T_cur\rhs_cur;
-% %     end
-    % Recover u from u_tilda
+    
+    % Recover uv_cur from uv_til_cur
     wrk = rhs_cur0-K0*uv_til_cur;
     wrk = Dirichlet_Esdo_rhs_UV(wrk,Node_flagx,Node_flagy,nnode);
     uv_cur = S\wrk;     
     
+    if flag_incr == 1 % incremental form
+        uv_cur = uv_elast + up_cur;
+    end
     % Displacements
-    UVu(1:nnode)  = uv_elast(1:nnode,1) + uv_cur(1:nnode,1);
-    UVv(1:nnode)  = uv_elast(nnode+1:2*nnode,1) + uv_cur(nnode+1:2*nnode,1);
+    UVu(1:nnode)  = uv_cur(1:nnode,1);
+    UVv(1:nnode)  = uv_cur(nnode+1:2*nnode,1);
 
 switch test_problem
     case {0,8}
@@ -294,7 +276,9 @@ switch test_problem
 
       if cy>=t_pr(cntr_cy)
           disp(['Year ' int2str(cy) ', Max displ in y and x: ' num2str(UVv(pmv)*U_char*L_char)  ' & ' num2str(UVu(pmu)*U_char*L_char)])
-
+          next_store = next_store + 1;
+          UV(:,next_store) = uv_cur;  % store the solution
+          
           ydis = L_char*(U_char*reshape(UVv(id(:)), size(id)));
           xdis = L_char*(U_char*reshape(UVu(id(:)), size(id)));
 
