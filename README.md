@@ -32,6 +32,23 @@ cfg = Config(layers=[Layer(1e5, eta=float("inf")), Layer(3.9e6, eta=1e21)],
 res = simulate(cfg)       # res.surface_uy[time, x]
 ```
 
+## Features (ported from the MATLAB code)
+
+- Uniform mesh refinement (`Config.refine`, `--refine`) replacing `my_Refine_quadr*`
+- Element-centre stress output (`Result.stress`, snapshots) replacing `SStime_*`
+- Glaciation/melt history (`Ice.glaciation`, `presets.glaciation_cycle`), the
+  fixed version of `height_ice` test case 11
+- Test problems in `gia.presets`: `standard` (with the E jump `emagn`), `glaciation_cycle`,
+  `elastic_uniform_load` (pure-elasticity benchmark)
+- Direct (sparse LU) or ILU-preconditioned GMRES solver (`Config.solver`)
+- Plotting (`gia.plotting`: mesh, surface profiles, fields) replacing `Bvisual_mesh`
+- Field snapshots at chosen times (`--snapshots`, replaces the `data-y*.mat` files)
+
+Not ported: the `Visco_parameters_Bjorn/Wu92/Wu98` presets and
+`Elasto_parameters`/`UVPtime_sol` manufactured solutions, which are referenced by the
+MATLAB code but not present in the repository. Custom layers can be built with
+`Config(layers=[Layer(...), ...])`.
+
 ## Verification
 
 `tests/test_analytic.py` compares against the analytic response of an

@@ -58,7 +58,7 @@ def build_mesh(cfg: Config) -> Mesh:
     yv = -np.concatenate([[0.0], np.cumsum(dy_top_down)])[::-1]
     mesh = Mesh(xv, yv)
     mesh.layer_of_row = np.concatenate(layer_of)[::-1]
-    return mesh
+    return mesh.refine(cfg.refine) if cfg.refine else mesh
 
 
 @dataclass
@@ -71,6 +71,8 @@ class Result:
     u: np.ndarray  # final displacement [ux; uy]
     p: np.ndarray  # final pressure (Pa)
     snapshots: List[dict] = field(default_factory=list)
+    # final element-centre stress (Pa): columns sxx, syy, sxy (sigma = -p I + tau)
+    stress: np.ndarray = None
 
 
 def simulate(cfg: Config, mesh: Mesh = None, callback=None, snapshot_times=()) -> Result:
@@ -112,7 +114,29 @@ def simulate(cfg: Config, mesh: Mesh = None, callback=None, snapshot_times=()) -
         S = fem.assemble_system(mesh, mu_eff / mu_ref, kappa / mu_ref, rho_adv)
         if cfg.gravity:
             S = S + fem.winkler_matrix(mesh, rho_g)
-        return spla.splu(S[free][:, free].tocsc())
+        Sf = S[free][:, free].tocsc()
+        if cfg.solver == "direct":
+            return spla.splu(Sf).solve
+        if cfg.solver != "gmres":
+            raise ValueError("solver must be 'direct' or 'gmres'")
+        # symmetric diagonal equilibration: displacement and pressure rows
+        # differ by many orders of magnitude when lengths are in metres
+        d = 1.0 / np.sqrt(np.abs(Sf.diagonal()))
+        D = sp.diags(d)
+        Ss = (D @ Sf @ D).tocsc()
+        ilu = spla.spilu(Ss, drop_tol=1e-8, fill_factor=50, diag_pivot_thresh=1.0)
+        M = spla.LinearOperator(Ss.shape, ilu.solve)
+
+        def solve_it(b):
+            if not b.any():
+                return np.zeros_like(b)
+            y, info = spla.gmres(Ss, d * b, M=M, rtol=cfg.gmres_tol, restart=100,
+                                 maxiter=50)
+            if info != 0:
+                raise RuntimeError(f"GMRES did not converge (info={info})")
+            return d * y
+
+        return solve_it
 
     lu_el = factor(mu)
     lu_visc = factor(mu * b)
@@ -132,7 +156,7 @@ def simulate(cfg: Config, mesh: Mesh = None, callback=None, snapshot_times=()) -
 
     def solve(lu, rhs):
         x = np.zeros(2 * nD + nP)
-        x[free] = lu.solve(rhs[free])
+        x[free] = lu(rhs[free])
         return x
 
     # elastic response at t = 0
@@ -150,16 +174,24 @@ def simulate(cfg: Config, mesh: Mesh = None, callback=None, snapshot_times=()) -
     snaps = []
     snap_idx = {int(round(s / dt)) for s in snapshot_times}
 
-    def emit(k, x):
+    def stress_of(x, tau):
+        """Element-centre stress sigma = -p I + tau (Pa)."""
+        pe = x[2 * nD :][mesh.conn1].mean(axis=1)
+        t = tau.mean(axis=1)
+        return mu_ref * np.stack(
+            [t[:, 0] - pe, t[:, 1] - pe, t[:, 2]], axis=1
+        )
+
+    def emit(k, x, tau):
         if k in snap_idx:
             snaps.append(
                 dict(time=times[k], ux=x[:nD].copy(), uy=x[nD : 2 * nD].copy(),
-                     p=x[2 * nD :] * mu_ref)
+                     p=x[2 * nD :] * mu_ref, stress=stress_of(x, tau))
             )
         if callback:
             callback(k, times[k], x)
 
-    emit(0, x)
+    emit(0, x, tau)
     mub = (mu * b / mu_ref)[:, None, None]
     af = a[:, None, None]
     for k in range(1, nsteps + 1):
@@ -172,7 +204,7 @@ def simulate(cfg: Config, mesh: Mesh = None, callback=None, snapshot_times=()) -
         tau = af * tau + 2 * mub * (e_new - e)
         e = e_new
         sux[k], suy[k] = u[surf], u[nD + surf]
-        emit(k, x)
+        emit(k, x, tau)
 
     return Result(
         mesh=mesh,
@@ -183,4 +215,5 @@ def simulate(cfg: Config, mesh: Mesh = None, callback=None, snapshot_times=()) -
         u=u,
         p=x[2 * nD :] * mu_ref,
         snapshots=snaps,
+        stress=stress_of(x, tau),
     )

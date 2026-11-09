@@ -45,6 +45,20 @@ class Ice:
     # boxcar; used e.g. for sinusoidal verification loads)
     profile: Optional[Callable] = None
 
+    @staticmethod
+    def glaciation(t_beg: float, t_lgm: float, t_eog: float):
+        """Thickness factor: linear growth on [t_beg, t_lgm], linear melt on
+        [t_lgm, t_eog], zero outside (times in seconds)."""
+
+        def f(t):
+            if t <= t_beg or t >= t_eog:
+                return 0.0
+            if t < t_lgm:
+                return (t - t_beg) / (t_lgm - t_beg)
+            return (t_eog - t) / (t_eog - t_lgm)
+
+        return f
+
     def height(self, t: float) -> float:
         f = 1.0 if self.history is None else float(self.history(t))
         return self.thickness * f
@@ -67,6 +81,9 @@ class Config:
     x_ratio: float = 1.25  # geometric growth of far-field elements
     ny_layer: int = 8  # elements per layer
     y_ratio: float = 1.0  # geometric growth towards depth (>1 refines surface)
+    refine: int = 0  # uniform refinement levels applied to the base mesh
+    solver: str = "direct"  # "direct" (sparse LU) or "gmres" (ILU-preconditioned)
+    gmres_tol: float = 1e-10
     # time stepping
     t_end: float = 20000.0 * SECONDS_PER_YEAR
     dt: float = 100.0 * SECONDS_PER_YEAR

@@ -57,3 +57,24 @@ class Mesh:
 
     def top(self):
         return (self.n2y - 1) * self.n2x + np.arange(self.n2x)
+
+    def refine(self, times: int = 1) -> "Mesh":
+        """Uniform refinement (each element split in four); layer bookkeeping
+        is carried over."""
+        xv, yv = self.xv, self.yv
+        layer = getattr(self, "layer_of_row", None)
+        for _ in range(times):
+            xv = np.sort(np.concatenate([xv, 0.5 * (xv[:-1] + xv[1:])]))
+            yv = np.sort(np.concatenate([yv, 0.5 * (yv[:-1] + yv[1:])]))
+            if layer is not None:
+                layer = np.repeat(layer, 2)
+        m = Mesh(xv, yv)
+        if layer is not None:
+            m.layer_of_row = layer
+        return m
+
+    def element_at(self, x, y):
+        """Index of the element containing the point (x, y)."""
+        i = np.clip(np.searchsorted(self.xv, x, side="right") - 1, 0, self.nx - 1)
+        j = np.clip(np.searchsorted(self.yv, y, side="right") - 1, 0, self.ny - 1)
+        return j * self.nx + i
